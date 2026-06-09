@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  /* Fondo "campo nocturno con reflector de estadio" */
+  background: radial-gradient(120% 80% at 50% -5%, #0E2C52 0%, #0A2342 48%, #071A33 100%) fixed;
+  color: #ffffff;
+  font-family: 'Twemoji Country Flags', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+}
+
+body {
+  margin: 0;
+}
+
+/* Scrollbar fino acorde a la paleta */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(0, 174, 239, 0.35);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Numeros de marcador alineados (stat cards, contadores) */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Haz de luz diagonal del header */
+@keyframes sweep {
+  0% {
+    transform: translateX(-120%) rotate(-12deg);
+  }
+  100% {
+    transform: translateX(220%) rotate(-12deg);
+  }
+}
+.hero-sweep::before {
+  content: '';
+  position: absolute;
+  inset: -40% -20%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(-12deg);
+  animation: sweep 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Accesibilidad: respetar reduce-motion (desactiva lo "jugoso", deja color/opacidad) */
+@media (prefers-reduced-motion: reduce) {
+  .hero-sweep::before,
+  .animate-shimmer,
+  .animate-breathe,
+  .animate-pulseGlow,
+  .animate-ringPulse,
+  .animate-pop,
+  .animate-floatUp,
+  .animate-fall,
+  .animate-dealIn {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 1ms !important;
+  }
+}
