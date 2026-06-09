@@ -17,12 +17,12 @@ const STEPS = [
     body: 'Tu álbum del Mundial 2026, siempre en el bolsillo. Marcá lo que te falta y lo que te sobra, y completá las 51 secciones (1020 figus).',
   },
   {
-    title: 'Marcá con un swipe 👆',
-    body: 'Deslizá cada figurita: ← a la izquierda si te FALTA (queda celeste), → a la derecha si la tenés REPETIDA (queda dorada). Tocá de nuevo para desmarcar.',
+    title: 'Marcá tus figus 👆',
+    body: 'TOCÁ una figu si YA LA TENÉS (queda ✓). Deslizá ← si te FALTA (celeste) o → si la tenés REPETIDA (dorada). Tocá o deslizá de nuevo para desmarcar.',
   },
   {
     title: 'Subí de nivel 🏆',
-    body: 'Cada figu suma. Mirá tu progreso por sección y global, completá selecciones y escalá de Novato a Leyenda. El dorado = lo más valioso.',
+    body: 'Tu álbum sube con las figus que TENÉS (pegadas o repes), no con las que te faltan. Completá selecciones y escalá de Novato a Leyenda. El dorado = lo más valioso.',
   },
   {
     title: 'Hacé MATCH con un amigo 🤝',
@@ -53,18 +53,29 @@ function Visual({ step, profile, update, push }: { step: number } & Omit<Props, 
   }
   if (step === 1) {
     return (
-      <div className="flex items-center justify-center gap-3 py-4">
-        <span className="text-2xl text-ice">←</span>
-        <div className="flex aspect-[4/5] w-16 flex-col items-center justify-center rounded-tile bg-ice/10 text-white ring-2 ring-ice/55">
-          <span className="text-lg font-extrabold">10</span>
-          <span className="text-[10px] text-ice">○ FALTA</span>
+      <div className="flex items-end justify-center gap-2 py-4">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xl text-ice">←</span>
+          <div className="flex aspect-[4/5] w-14 flex-col items-center justify-center rounded-tile bg-ice/10 text-white ring-2 ring-ice/55">
+            <span className="text-base font-extrabold">10</span>
+            <span className="text-[9px] text-ice">○ FALTA</span>
+          </div>
         </div>
-        <div className="relative flex aspect-[4/5] w-16 flex-col items-center justify-center rounded-tile bg-gold-card text-navy shadow-glow-gold">
-          <span className="absolute inset-x-0 top-0 h-1/2 bg-gloss" />
-          <span className="relative text-lg font-extrabold">10</span>
-          <span className="relative text-[10px] font-bold">★ REPE</span>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xl text-white/70">👆</span>
+          <div className="flex aspect-[4/5] w-14 flex-col items-center justify-center rounded-tile bg-white/[0.16] text-white ring-1 ring-white/45">
+            <span className="text-base font-extrabold">10</span>
+            <span className="text-[9px] text-white/75">✓ TENGO</span>
+          </div>
         </div>
-        <span className="text-2xl text-gold">→</span>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xl text-gold">→</span>
+          <div className="relative flex aspect-[4/5] w-14 flex-col items-center justify-center rounded-tile bg-gold-card text-navy shadow-glow-gold">
+            <span className="absolute inset-x-0 top-0 h-1/2 bg-gloss" />
+            <span className="relative text-base font-extrabold">10</span>
+            <span className="relative text-[9px] font-bold">★ REPE</span>
+          </div>
+        </div>
       </div>
     );
   }

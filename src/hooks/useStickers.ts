@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export type StickerState = 'missing' | 'duplicate' | null;
+export type StickerState = 'missing' | 'duplicate' | 'owned' | null;
 
 export type StickersMap = Record<string, Record<number, Exclude<StickerState, null>>>;
 

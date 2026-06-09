@@ -4,6 +4,7 @@ import {
   type DecodeOk,
   ERROR_MESSAGES,
   SECTIONS_BY_CODE,
+  albumProgress,
   buildMatchText,
   computeMatch,
   decodePayload,
@@ -75,9 +76,25 @@ export function MatchModal({ myStickers, myName, incoming, onClose }: Props) {
     [myStickers, result],
   );
 
+  const head = useMemo(
+    () =>
+      result
+        ? { mine: albumProgress(myStickers).pct, theirs: albumProgress(result.stickers).pct }
+        : null,
+    [myStickers, result],
+  );
+
   const matchText = useMemo(
-    () => (result && match ? buildMatchText(myName, result.name, match) : ''),
-    [myName, result, match],
+    () =>
+      result && match
+        ? buildMatchText(
+            myName,
+            result.name,
+            match,
+            head ? { minePct: head.mine, theirsPct: head.theirs } : undefined,
+          )
+        : '',
+    [myName, result, match, head],
   );
 
   const flash = (key: 'copy' | 'share') => {
@@ -197,6 +214,29 @@ export function MatchModal({ myStickers, myName, incoming, onClose }: Props) {
               <p className="mb-3 rounded-card bg-white/[0.06] p-2 text-[11px] text-white/55 ring-1 ring-white/10">
                 ⚠️ Tu amigo puede tener una versión distinta del álbum; algunas figus podrían no coincidir.
               </p>
+            )}
+
+            {head && (
+              <div className="mb-3 space-y-2 rounded-card bg-white/[0.05] p-3 ring-1 ring-white/10">
+                <div className="text-[11px] uppercase tracking-wide text-white/45">📊 Álbum completado</div>
+                {[
+                  { label: 'Vos', pct: head.mine, color: 'bg-ice' },
+                  { label: result.name, pct: head.theirs, color: 'bg-gold' },
+                ].map((row, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="w-20 shrink-0 truncate text-xs text-white/70">{row.label}</span>
+                    <div className="relative h-2 flex-1 overflow-hidden rounded-pill bg-white/10">
+                      <div
+                        className={`h-full rounded-pill ${row.color} transition-all duration-700 ease-out`}
+                        style={{ width: `${row.pct}%` }}
+                      />
+                    </div>
+                    <span className="w-9 shrink-0 text-right text-xs font-bold tabular text-white">
+                      {row.pct}%
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
 
             {match.summary.mutualScore === 0 ? (

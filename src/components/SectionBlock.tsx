@@ -20,14 +20,17 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
 
   let missing = 0;
   let duplicate = 0;
+  let owned = 0;
   if (sectionData) {
     for (const v of Object.values(sectionData)) {
       if (v === 'missing') missing++;
       else if (v === 'duplicate') duplicate++;
+      else if (v === 'owned') owned++;
     }
   }
-  const marked = missing + duplicate;
-  const isComplete = marked === section.total;
+  // "completada" = tenés cada figu al menos una vez (pegada o repe). Las faltantes no cuentan.
+  const have = owned + duplicate;
+  const isComplete = have === section.total;
   const isFwc = section.group === 'fwc';
 
   // dispara celebracion solo en la transicion a completa
@@ -55,7 +58,7 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
         }`}
       >
         <div className="flex min-w-0 items-center gap-3">
-          <ProgressRing value={section.total ? marked / section.total : 0} size={44} stroke={4} complete={isComplete}>
+          <ProgressRing value={section.total ? have / section.total : 0} size={44} stroke={4} complete={isComplete}>
             <span
               className={`flex h-7 w-7 items-center justify-center rounded-full bg-navy text-xl ring-1 ${
                 isFwc ? 'ring-gold/50' : 'ring-white/15'
@@ -80,6 +83,11 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
             </span>
           ) : (
             <div className="flex gap-1.5">
+              {have > 0 && (
+                <span className="rounded-pill bg-white/12 px-2 py-0.5 text-xs text-white/80 ring-1 ring-white/25">
+                  ✓ {have}
+                </span>
+              )}
               {missing > 0 && (
                 <span className="rounded-pill bg-ice/15 px-2 py-0.5 text-xs text-ice ring-1 ring-ice/40">
                   ○ {missing}
@@ -108,7 +116,8 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
           <div className="mb-3 h-px bg-gold-line" />
           <div className="mb-3 flex items-center justify-between">
             <p className="text-xs text-white/55">
-              Desliza <span className="text-white/55">← falta</span> ·{' '}
+              <span className="text-white/80">tocá ✓ la tengo</span> ·{' '}
+              <span className="text-ice">← falta</span> ·{' '}
               <span className="font-semibold text-gold">→ repe</span>
             </p>
             <button

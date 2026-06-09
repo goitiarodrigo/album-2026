@@ -35,6 +35,7 @@ export function StickerCard({ number, state, onToggle }: Props) {
     },
     onSwipedLeft: () => fire('missing'),
     onSwipedRight: () => fire('duplicate'),
+    onTap: () => fire('owned'),
     onSwiped: () => setDragDx(0),
     delta: SWIPE_THRESHOLD,
     trackMouse: true,
@@ -55,9 +56,11 @@ export function StickerCard({ number, state, onToggle }: Props) {
   const stateCls =
     state === 'duplicate'
       ? 'bg-gold-card text-navy shadow-glow-gold'
-      : state === 'missing'
-        ? 'bg-ice/10 text-white ring-2 ring-ice/55'
-        : 'bg-navy text-white/40 ring-1 ring-white/10';
+      : state === 'owned'
+        ? 'bg-white/[0.16] text-white ring-1 ring-white/45'
+        : state === 'missing'
+          ? 'bg-ice/10 text-white ring-2 ring-ice/55'
+          : 'bg-navy text-white/40 ring-1 ring-white/10';
 
   return (
     <div className="relative">
@@ -79,6 +82,10 @@ export function StickerCard({ number, state, onToggle }: Props) {
         {/* estrella en repe */}
         {state === 'duplicate' && (
           <span className="pointer-events-none absolute right-1 top-0.5 text-[10px] text-white/80">★</span>
+        )}
+        {/* check en "la tengo" */}
+        {state === 'owned' && (
+          <span className="pointer-events-none absolute right-1 top-0.5 text-[10px] text-white/70">✓</span>
         )}
 
         {/* ghost de preview durante el swipe */}
@@ -115,10 +122,14 @@ export function StickerCard({ number, state, onToggle }: Props) {
         <span
           key={burst.key}
           className={`animate-floatUp pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 text-sm font-extrabold ${
-            burst.kind === 'duplicate' ? 'text-gold' : 'text-ice'
+            burst.kind === 'duplicate'
+              ? 'text-gold'
+              : burst.kind === 'owned'
+                ? 'text-white'
+                : 'text-ice'
           }`}
         >
-          +1
+          {burst.kind === 'owned' ? '✓' : '+1'}
         </span>
       )}
     </div>

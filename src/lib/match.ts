@@ -115,7 +115,7 @@ export function encodeList(stickers: StickersMap, rawName: string): string {
     if (!sec) continue;
     for (let slot = 1; slot <= SLOTS_PER_SECTION; slot++) {
       const st = sec[slot];
-      const code = st === 'missing' ? 0b01 : st === 'duplicate' ? 0b10 : 0b00;
+      const code = st === 'missing' ? 0b01 : st === 'duplicate' ? 0b10 : st === 'owned' ? 0b11 : 0b00;
       if (code === 0) continue;
       const g = sIdx * SLOTS_PER_SECTION + (slot - 1);
       buf[off + (g >> 2)] |= code << ((g & 3) * 2);
@@ -166,21 +166,17 @@ export function decodePayload(input: string): DecodeOk | DecodeErr {
 
     const off = 3 + nameLen;
     const stickers: StickersMap = {};
-    let reservedBits = 0;
     for (let sIdx = 0; sIdx < SECTIONS.length; sIdx++) {
       const code = SECTIONS[sIdx].code;
       for (let slot = 1; slot <= SLOTS_PER_SECTION; slot++) {
         const g = sIdx * SLOTS_PER_SECTION + (slot - 1);
         const c = (bytes[off + (g >> 2)] >> ((g & 3) * 2)) & 0b11;
         if (c === 0b00) continue;
-        if (c === 0b11) {
-          reservedBits++;
-          continue;
-        }
-        (stickers[code] ??= {})[slot] = c === 0b01 ? 'missing' : 'duplicate';
+        (stickers[code] ??= {})[slot] =
+          c === 0b01 ? 'missing' : c === 0b10 ? 'duplicate' : 'owned';
       }
     }
-    return { ok: true, name, stickers, meta: { version, catalogMismatch: fp !== CATALOG_FP, reservedBits } };
+    return { ok: true, name, stickers, meta: { version, catalogMismatch: fp !== CATALOG_FP, reservedBits: 0 } };
   } catch {
     return { ok: false, error: 'CORRUPT' };
   }
@@ -228,6 +224,20 @@ export function computeMatch(mine: StickersMap, theirs: StickersMap): MatchResul
   };
 }
 
+// Progreso real del álbum: una figu cuenta como "la tengo" si está pegada (owned)
+// o repetida (duplicate). Las faltantes y las no tocadas no suman.
+export function albumProgress(stickers: StickersMap): { have: number; total: number; pct: number } {
+  let have = 0;
+  for (const sec of Object.values(stickers)) {
+    if (!sec) continue;
+    for (const v of Object.values(sec)) {
+      if (v === 'owned' || v === 'duplicate') have++;
+    }
+  }
+  const total = TOTAL_SLOTS;
+  return { have, total, pct: total ? Math.round((have / total) * 100) : 0 };
+}
+
 // agrupa entries por sección (en orden de catálogo) para la UI
 export function groupBySection(entries: MatchEntry[]): { code: string; slots: number[] }[] {
   const map = new Map<string, number[]>();
@@ -240,10 +250,18 @@ export function groupBySection(entries: MatchEntry[]): { code: string; slots: nu
 }
 
 // Texto compacto del match para pegar en WhatsApp y negociar el intercambio.
-export function buildMatchText(myName: string, theirName: string, match: MatchResult): string {
+export function buildMatchText(
+  myName: string,
+  theirName: string,
+  match: MatchResult,
+  head?: { minePct: number; theirsPct: number },
+): string {
   const me = (myName ?? '').trim() || 'Yo';
   const them = (theirName ?? '').trim() || 'Vos';
   const lines: string[] = ['🤝 Match · Mundial 2026', `${me} ↔ ${them}`, ''];
+  if (head) {
+    lines.push(`📊 Álbum: ${me} ${head.minePct}% · ${them} ${head.theirsPct}%`, '');
+  }
   if (match.iGive.length > 0) {
     lines.push(`📤 Te doy (${match.iGive.length}):`);
     for (const g of groupBySection(match.iGive)) {

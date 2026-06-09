@@ -66,25 +66,35 @@ function App() {
     setReplayOnboarding(false);
   }, []);
 
-  const { missing, duplicate, completas } = useMemo(() => {
+  const { missing, duplicate, owned, completas } = useMemo(() => {
     let missing = 0;
     let duplicate = 0;
+    let owned = 0;
     let completas = 0;
     for (const section of SECTIONS) {
       const data = stickers[section.code];
       if (!data) continue;
-      const keys = Object.keys(data);
-      for (const k of keys) {
-        if (data[+k] === 'missing') missing++;
-        else if (data[+k] === 'duplicate') duplicate++;
+      let have = 0;
+      for (const k of Object.keys(data)) {
+        const v = data[+k];
+        if (v === 'missing') missing++;
+        else if (v === 'duplicate') {
+          duplicate++;
+          have++;
+        } else if (v === 'owned') {
+          owned++;
+          have++;
+        }
       }
-      if (keys.length === section.total) completas++;
+      if (have === section.total) completas++;
     }
-    return { missing, duplicate, completas };
+    return { missing, duplicate, owned, completas };
   }, [stickers]);
 
-  const marked = missing + duplicate;
-  const pct = Math.round((marked / TOTAL_SLOTS) * 100);
+  // El álbum avanza solo con figus que TENÉS (pegadas o repes). Las faltantes no suman.
+  const have = owned + duplicate;
+  const anyMarked = have + missing > 0;
+  const pct = Math.round((have / TOTAL_SLOTS) * 100);
 
   // milestones globales + confetti de album lleno
   useEffect(() => {
@@ -120,12 +130,12 @@ function App() {
 
   const fwc = filteredSections.filter((s) => s.group === 'fwc');
   const teams = filteredSections.filter((s) => s.group === 'team');
-  const hasItems = marked > 0;
+  const hasItems = anyMarked;
 
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col px-4 pb-28">
       <ProgressHeader
-        marked={marked}
+        marked={have}
         total={TOTAL_SLOTS}
         profile={profile}
         hasProfile={hasProfile}
@@ -142,18 +152,21 @@ function App() {
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2.5">
-        <div className="rounded-card bg-ice/[0.12] p-3.5 shadow-glow-ice ring-1 ring-ice/35">
-          <div className="text-lg leading-none text-ice">○</div>
-          <div className="mt-1 text-4xl font-extrabold leading-none tabular text-ice">{missing}</div>
-          <div className="mt-1 text-xs uppercase tracking-wide text-white/60">Me faltan</div>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="rounded-card bg-white/[0.08] p-3 ring-1 ring-white/20">
+          <div className="text-base leading-none text-white/80">✓</div>
+          <div className="mt-1 text-3xl font-extrabold leading-none tabular text-white">{have}</div>
+          <div className="mt-1 text-[11px] uppercase tracking-wide text-white/55">Tengo</div>
         </div>
-        <div className="rounded-card bg-gold/[0.14] p-3.5 shadow-glow-gold ring-1 ring-gold/45">
-          <div className="text-lg leading-none text-gold">★</div>
-          <div className="mt-1 text-4xl font-extrabold leading-none tabular text-gold">{duplicate}</div>
-          <div className="mt-1 text-xs uppercase tracking-wide text-white/60">
-            Tengo repes <span className="text-[10px] normal-case text-gold/80">· para cambiar</span>
-          </div>
+        <div className="rounded-card bg-ice/[0.12] p-3 shadow-glow-ice ring-1 ring-ice/35">
+          <div className="text-base leading-none text-ice">○</div>
+          <div className="mt-1 text-3xl font-extrabold leading-none tabular text-ice">{missing}</div>
+          <div className="mt-1 text-[11px] uppercase tracking-wide text-white/55">Faltan</div>
+        </div>
+        <div className="rounded-card bg-gold/[0.14] p-3 shadow-glow-gold ring-1 ring-gold/45">
+          <div className="text-base leading-none text-gold">★</div>
+          <div className="mt-1 text-3xl font-extrabold leading-none tabular text-gold">{duplicate}</div>
+          <div className="mt-1 text-[11px] uppercase tracking-wide text-white/55">Repes</div>
         </div>
       </div>
 
