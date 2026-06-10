@@ -11,6 +11,8 @@ export default {
         // nombres logicos re-mapeados SIN tocar la logica: falta=celeste frio, repe=dorado
         missing: '#00AEEF',
         duplicate: '#F5C542',
+        // EXCEPCION acotada a la paleta: solo para el acento de la seccion sponsor Coca-Cola
+        coke: { DEFAULT: '#F40009', deep: '#B3000A' },
       },
       borderRadius: {
         tile: '0.875rem', // 14px - tiles tipo cromo

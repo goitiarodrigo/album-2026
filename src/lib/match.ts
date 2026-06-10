@@ -1,13 +1,13 @@
 // Módulo de match offline-first: codifica la lista del usuario en un payload base64url
 // que viaja en el hash de un link (#m=...). El receptor lo decodifica y cruza con su
 // propia lista. 100% frontend, los datos nunca salen del dispositivo por la red.
-import { SECTIONS, SECTIONS_BY_CODE } from '../data/catalog';
+import { SECTIONS, SECTIONS_BY_CODE, slotLabel } from '../data/catalog';
 import type { StickersMap } from '../hooks/useStickers';
 
-const SLOTS_PER_SECTION = 20;
-const TOTAL_SLOTS = SECTIONS.length * SLOTS_PER_SECTION; // 51*20 = 1020
-const BITSET_BYTES = Math.ceil((TOTAL_SLOTS * 2) / 8); // 255
-const PAYLOAD_VERSION = 1;
+// El total de slots y el layout del bitset se DERIVAN del catálogo (no asume N fijo por sección).
+const TOTAL_SLOTS = SECTIONS.reduce((acc, s) => acc + s.slots.length, 0);
+const BITSET_BYTES = Math.ceil((TOTAL_SLOTS * 2) / 8);
+const PAYLOAD_VERSION = 2; // v2: slots variables por sección (FWC 00–19 + Coca-Cola CC1–14)
 const MAX_NAME_BYTES = 40;
 const MAX_INPUT_CHARS = 1000;
 
@@ -19,7 +19,7 @@ function fnv1a(str: string): number {
   }
   return h >>> 0;
 }
-const CATALOG_FP = fnv1a(SECTIONS.map((s) => `${s.code}:${s.total}`).join('|')) & 0xff;
+const CATALOG_FP = fnv1a(SECTIONS.map((s) => `${s.code}:${s.slots.join(',')}`).join('|')) & 0xff;
 
 export type MatchEntry = { code: string; slot: number };
 export type ErrorCode =
@@ -31,7 +31,8 @@ export type ErrorCode =
   | 'NEWER_VERSION'
   | 'UNKNOWN_VERSION'
   | 'BAD_NAME_LEN'
-  | 'BAD_LENGTH';
+  | 'BAD_LENGTH'
+  | 'OLD_VERSION';
 export type DecodeOk = {
   ok: true;
   name: string;
@@ -50,6 +51,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   UNKNOWN_VERSION: 'No reconozco el formato de este código.',
   BAD_NAME_LEN: 'El código parece manipulado o dañado.',
   BAD_LENGTH: 'El código está incompleto o dañado.',
+  OLD_VERSION: 'Ese link es de una versión anterior del álbum. Pedile a tu amigo que comparta uno nuevo.',
 };
 
 // --- base64url ---
@@ -110,15 +112,14 @@ export function encodeList(stickers: StickersMap, rawName: string): string {
   buf[2] = nameBytes.length;
   buf.set(nameBytes, 3);
   const off = 3 + nameBytes.length;
-  for (let sIdx = 0; sIdx < SECTIONS.length; sIdx++) {
-    const sec = stickers[SECTIONS[sIdx].code];
-    if (!sec) continue;
-    for (let slot = 1; slot <= SLOTS_PER_SECTION; slot++) {
-      const st = sec[slot];
+  let g = 0;
+  for (const section of SECTIONS) {
+    const sec = stickers[section.code];
+    for (const slot of section.slots) {
+      const st = sec?.[slot];
       const code = st === 'missing' ? 0b01 : st === 'duplicate' ? 0b10 : st === 'owned' ? 0b11 : 0b00;
-      if (code === 0) continue;
-      const g = sIdx * SLOTS_PER_SECTION + (slot - 1);
-      buf[off + (g >> 2)] |= code << ((g & 3) * 2);
+      if (code !== 0) buf[off + (g >> 2)] |= code << ((g & 3) * 2);
+      g++;
     }
   }
   return bytesToB64url(buf);
@@ -154,6 +155,7 @@ export function decodePayload(input: string): DecodeOk | DecodeErr {
     const version = bytes[0];
     if (version > PAYLOAD_VERSION) return { ok: false, error: 'NEWER_VERSION' };
     if (version < 1) return { ok: false, error: 'UNKNOWN_VERSION' };
+    if (version < PAYLOAD_VERSION) return { ok: false, error: 'OLD_VERSION' };
 
     const fp = bytes[1];
     const nameLen = bytes[2];
@@ -166,13 +168,13 @@ export function decodePayload(input: string): DecodeOk | DecodeErr {
 
     const off = 3 + nameLen;
     const stickers: StickersMap = {};
-    for (let sIdx = 0; sIdx < SECTIONS.length; sIdx++) {
-      const code = SECTIONS[sIdx].code;
-      for (let slot = 1; slot <= SLOTS_PER_SECTION; slot++) {
-        const g = sIdx * SLOTS_PER_SECTION + (slot - 1);
+    let g = 0;
+    for (const section of SECTIONS) {
+      for (const slot of section.slots) {
         const c = (bytes[off + (g >> 2)] >> ((g & 3) * 2)) & 0b11;
+        g++;
         if (c === 0b00) continue;
-        (stickers[code] ??= {})[slot] =
+        (stickers[section.code] ??= {})[slot] =
           c === 0b01 ? 'missing' : c === 0b10 ? 'duplicate' : 'owned';
       }
     }
@@ -197,12 +199,12 @@ export type MatchResult = {
 export function computeMatch(mine: StickersMap, theirs: StickersMap): MatchResult {
   const iGive: MatchEntry[] = [];
   const theyGive: MatchEntry[] = [];
-  for (let sIdx = 0; sIdx < SECTIONS.length; sIdx++) {
-    const code = SECTIONS[sIdx].code;
+  for (const section of SECTIONS) {
+    const code = section.code;
     const m = mine[code];
     const t = theirs[code];
     if (!m && !t) continue;
-    for (let slot = 1; slot <= SLOTS_PER_SECTION; slot++) {
+    for (const slot of section.slots) {
       const ms = m?.[slot];
       const ts = t?.[slot];
       if (ms === 'duplicate' && ts === 'missing') iGive.push({ code, slot }); // yo le doy
@@ -266,7 +268,8 @@ export function buildMatchText(
     lines.push(`📤 Te doy (${match.iGive.length}):`);
     for (const g of groupBySection(match.iGive)) {
       const sec = SECTIONS_BY_CODE[g.code];
-      lines.push(`${g.code} ${sec?.flag ?? ''}: ${g.slots.join(', ')}`.trim());
+      const slots = g.slots.map((s) => (sec ? slotLabel(sec, s) : String(s))).join(', ');
+      lines.push(`${g.code} ${sec?.flag ?? ''}: ${slots}`.trim());
     }
     lines.push('');
   }
@@ -274,7 +277,8 @@ export function buildMatchText(
     lines.push(`📥 Me das (${match.theyGive.length}):`);
     for (const g of groupBySection(match.theyGive)) {
       const sec = SECTIONS_BY_CODE[g.code];
-      lines.push(`${g.code} ${sec?.flag ?? ''}: ${g.slots.join(', ')}`.trim());
+      const slots = g.slots.map((s) => (sec ? slotLabel(sec, s) : String(s))).join(', ');
+      lines.push(`${g.code} ${sec?.flag ?? ''}: ${slots}`.trim());
     }
     lines.push('');
   }

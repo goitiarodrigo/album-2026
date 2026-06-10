@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { SECTIONS } from '../data/catalog';
 
 export type StickerState = 'missing' | 'duplicate' | 'owned' | null;
 
@@ -6,12 +7,36 @@ export type StickersMap = Record<string, Record<number, Exclude<StickerState, nu
 
 const STORAGE_KEY = 'panini-2026:v1';
 
+// Slots válidos por sección, según el catálogo actual.
+const VALID_SLOTS: Record<string, Set<number>> = Object.fromEntries(
+  SECTIONS.map((s) => [s.code, new Set(s.slots)]),
+);
+const VALID_STATES = new Set(['missing', 'duplicate', 'owned']);
+
+// Descarta secciones/slots que ya no existen en el catálogo (p. ej. FWC con la numeración vieja).
+function sanitize(map: StickersMap): StickersMap {
+  const out: StickersMap = {};
+  for (const code of Object.keys(map)) {
+    const valid = VALID_SLOTS[code];
+    const sec = map[code];
+    if (!valid || !sec || typeof sec !== 'object') continue;
+    const kept: Record<number, Exclude<StickerState, null>> = {};
+    for (const k of Object.keys(sec)) {
+      const n = Number(k);
+      const v = sec[+k];
+      if (valid.has(n) && VALID_STATES.has(v)) kept[n] = v;
+    }
+    if (Object.keys(kept).length) out[code] = kept;
+  }
+  return out;
+}
+
 function loadFromStorage(): StickersMap {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? (parsed as StickersMap) : {};
+    return parsed && typeof parsed === 'object' ? sanitize(parsed as StickersMap) : {};
   } catch {
     return {};
   }

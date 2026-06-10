@@ -9,10 +9,12 @@ import { Confetti } from './components/Confetti';
 import { ToastStack, useToasts } from './components/Toasts';
 import { ProfileModal } from './components/ProfileModal';
 import { Onboarding } from './components/Onboarding';
+import { WhatsNew } from './components/WhatsNew';
 import { MatchModal } from './components/MatchModal';
 import { type DecodeOk, ERROR_MESSAGES, decodePayload } from './lib/match';
 
 const ONBOARD_KEY = 'panini-2026:onboarded';
+const WHATS_NEW_KEY = 'panini-2026:whats-new:v2';
 
 const TOTAL_SLOTS = SECTIONS.reduce((acc, s) => acc + s.total, 0);
 const MILESTONES = [25, 50, 75, 100];
@@ -33,6 +35,13 @@ function App() {
     }
   });
   const [replayOnboarding, setReplayOnboarding] = useState(false);
+  const [whatsNewSeen, setWhatsNewSeen] = useState(() => {
+    try {
+      return localStorage.getItem(WHATS_NEW_KEY) === '1';
+    } catch {
+      return true;
+    }
+  });
   const [query, setQuery] = useState('');
   const [albumConfetti, setAlbumConfetti] = useState(0);
   const prevPct = useRef(0);
@@ -59,11 +68,23 @@ function App() {
   const finishOnboarding = useCallback(() => {
     try {
       localStorage.setItem(ONBOARD_KEY, '1');
+      // Quien recién hace el onboarding ya vio todo: no le mostramos también el "novedades".
+      localStorage.setItem(WHATS_NEW_KEY, '1');
     } catch {
       // ignore
     }
     setOnboarded(true);
     setReplayOnboarding(false);
+    setWhatsNewSeen(true);
+  }, []);
+
+  const closeWhatsNew = useCallback(() => {
+    try {
+      localStorage.setItem(WHATS_NEW_KEY, '1');
+    } catch {
+      // ignore
+    }
+    setWhatsNewSeen(true);
   }, []);
 
   const { missing, duplicate, owned, completas } = useMemo(() => {
@@ -129,6 +150,7 @@ function App() {
   }, [query]);
 
   const fwc = filteredSections.filter((s) => s.group === 'fwc');
+  const cc = filteredSections.filter((s) => s.group === 'cc');
   const teams = filteredSections.filter((s) => s.group === 'team');
   const hasItems = anyMarked;
 
@@ -179,6 +201,24 @@ function App() {
         <div className="mt-5 space-y-2">
           <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-white/45">FWC</h2>
           {fwc.map((section) => (
+            <SectionBlock
+              key={section.code}
+              section={section}
+              sectionData={stickers[section.code]}
+              onToggle={(num, target) => toggleState(section.code, num, target)}
+              onReset={() => resetSection(section.code)}
+              onComplete={onComplete}
+            />
+          ))}
+        </div>
+      )}
+
+      {cc.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-coke/80">
+            🥤 Coca-Cola
+          </h2>
+          {cc.map((section) => (
             <SectionBlock
               key={section.code}
               section={section}
@@ -286,6 +326,8 @@ function App() {
       {(!onboarded || replayOnboarding) && (
         <Onboarding profile={profile} update={update} push={push} onFinish={finishOnboarding} />
       )}
+
+      {onboarded && !replayOnboarding && !whatsNewSeen && <WhatsNew onClose={closeWhatsNew} />}
 
       <ToastStack toasts={toasts} />
       {albumConfetti > 0 && (

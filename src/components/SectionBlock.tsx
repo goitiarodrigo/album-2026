@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Section } from '../data/catalog';
+import { slotLabel, type Section } from '../data/catalog';
 import type { StickerState } from '../hooks/useStickers';
 import { StickerCard } from './StickerCard';
 import { ProgressRing } from './ProgressRing';
@@ -32,6 +32,7 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
   const have = owned + duplicate;
   const isComplete = have === section.total;
   const isFwc = section.group === 'fwc';
+  const isCc = section.group === 'cc';
 
   // dispara celebracion solo en la transicion a completa
   useEffect(() => {
@@ -45,7 +46,7 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
   return (
     <section
       className={`relative overflow-hidden rounded-card bg-navy-raised shadow-card transition-shadow ${
-        isComplete ? 'shadow-gold-card' : 'ring-1 ring-white/10'
+        isComplete ? 'shadow-gold-card' : isCc ? 'ring-1 ring-coke/30' : 'ring-1 ring-white/10'
       }`}
     >
       {confettiKey > 0 && isComplete && <Confetti key={confettiKey} seed={confettiKey} pieces={16} />}
@@ -61,7 +62,7 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
           <ProgressRing value={section.total ? have / section.total : 0} size={44} stroke={4} complete={isComplete}>
             <span
               className={`flex h-7 w-7 items-center justify-center rounded-full bg-navy text-xl ring-1 ${
-                isFwc ? 'ring-gold/50' : 'ring-white/15'
+                isFwc ? 'ring-gold/50' : isCc ? 'ring-coke/60' : 'ring-white/15'
               }`}
             >
               {section.flag}
@@ -71,6 +72,11 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
             <div className="flex items-center gap-1.5 font-extrabold text-white">
               <span className="text-base">{section.code}</span>
               {isFwc && <span className="text-xs">👑</span>}
+              {isCc && (
+                <span className="rounded-pill bg-coke/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-coke ring-1 ring-coke/50">
+                  Sponsor
+                </span>
+              )}
             </div>
             <div className="truncate text-sm text-white/55">{section.name}</div>
           </div>
@@ -129,14 +135,14 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
             </button>
           </div>
           <div className="grid grid-cols-5 gap-2">
-            {Array.from({ length: section.total }, (_, i) => i + 1).map((n, i) => (
+            {section.slots.map((n, i) => (
               <div
                 key={n}
                 className="animate-dealIn"
                 style={{ animationDelay: `${Math.min(i, 8) * 14}ms` }}
               >
                 <StickerCard
-                  number={n}
+                  label={slotLabel(section, n)}
                   state={sectionData?.[n] ?? null}
                   onToggle={(target) => onToggle(n, target)}
                 />

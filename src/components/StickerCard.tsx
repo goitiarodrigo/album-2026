@@ -3,7 +3,7 @@ import { useSwipeable } from 'react-swipeable';
 import type { StickerState } from '../hooks/useStickers';
 
 type Props = {
-  number: number;
+  label: string;
   state: StickerState;
   onToggle: (target: Exclude<StickerState, null>) => void;
 };
@@ -12,7 +12,7 @@ const SWIPE_THRESHOLD = 35;
 
 type Burst = { key: number; kind: Exclude<StickerState, null> } | null;
 
-export function StickerCard({ number, state, onToggle }: Props) {
+export function StickerCard({ label, state, onToggle }: Props) {
   const [dragDx, setDragDx] = useState(0);
   const [burst, setBurst] = useState<Burst>(null);
   const burstId = useRef(0);
@@ -67,7 +67,7 @@ export function StickerCard({ number, state, onToggle }: Props) {
       <div
         {...handlers}
         role="button"
-        aria-label={`Figurita ${number}`}
+        aria-label={`Figurita ${label}`}
         className={`${base} ${stateCls} ${burst ? 'animate-pop' : ''}`}
         style={{
           transform: `translateX(${dragDx}px) rotate(${dragDx * 0.18}deg)`,
@@ -106,7 +106,7 @@ export function StickerCard({ number, state, onToggle }: Props) {
           </span>
         )}
 
-        <span className="pointer-events-none relative z-10">{number}</span>
+        <span className="pointer-events-none relative z-10 leading-none">{label}</span>
 
         {/* flash de revelado al confirmar */}
         {burst && (

@@ -11,6 +11,7 @@ import {
   groupBySection,
   type MatchEntry,
 } from '../lib/match';
+import { slotLabel } from '../data/catalog';
 import { Avatar } from './Avatar';
 
 type Props = {
@@ -55,7 +56,9 @@ function ExchangeBlock({
                 <span className="shrink-0 font-semibold text-white/80">
                   {sec?.flag} {g.code}
                 </span>
-                <span className="text-white/65">{g.slots.join(', ')}</span>
+                <span className="text-white/65">
+                  {g.slots.map((s) => (sec ? slotLabel(sec, s) : s)).join(', ')}
+                </span>
               </div>
             );
           })}
