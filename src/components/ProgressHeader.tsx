@@ -18,12 +18,22 @@ export function ProgressHeader({ marked, total, profile, hasProfile, onOpenProfi
   const level = collectorLevel(pct);
 
   return (
-    <header className="hero-sweep relative -mx-4 overflow-hidden rounded-b-hero border-b border-white/10 bg-hero px-4 pb-4 pt-5">
+    <header className="hero-sweep relative -mx-4 overflow-hidden rounded-b-hero border-b border-white/10 bg-navy-deep px-4 pb-4 pt-5">
+      <img
+        src="/hero.webp"
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-navy-deep/40 via-navy-deep/70 to-navy-raised"
+      />
       {profile && (
         <button
           type="button"
           onClick={onOpenProfile}
-          className="relative mb-3 flex w-full items-center gap-2.5 rounded-pill bg-white/[0.06] px-2 py-1.5 ring-1 ring-white/10 transition hover:bg-white/[0.1] active:scale-[0.98]"
+          className="relative z-10 mb-3 flex w-full items-center gap-2.5 rounded-pill bg-navy/40 px-2 py-1.5 ring-1 ring-white/10 backdrop-blur-sm transition hover:bg-navy/55 active:scale-[0.98]"
         >
           <Avatar avatar={profile.avatar} size={40} badges="trophy" />
           <span className="min-w-0 flex-1 text-left">
@@ -37,9 +47,12 @@ export function ProgressHeader({ marked, total, profile, hasProfile, onOpenProfi
           <span className="text-sm text-white/35">✎</span>
         </button>
       )}
-      <div className="relative flex items-start justify-between gap-3">
+      <div className="relative z-10 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="flex items-center gap-1.5 text-2xl font-extrabold leading-none tracking-tight text-white">
+          <h1
+            className="flex items-center gap-1.5 text-2xl font-extrabold leading-none tracking-tight text-white"
+            style={{ textShadow: '0 2px 12px rgba(7,26,51,0.85)' }}
+          >
             Mis Figus <span className="text-gold">★</span>
           </h1>
           <div
@@ -56,15 +69,23 @@ export function ProgressHeader({ marked, total, profile, hasProfile, onOpenProfi
 
         <div className="flex shrink-0 flex-col items-center">
           <ProgressRing value={ratio} size={60} stroke={5} complete={complete}>
-            <span className="text-base font-extrabold tabular text-white">{pct}%</span>
+            <span
+              className="text-base font-extrabold tabular text-white"
+              style={{ textShadow: '0 1px 6px rgba(7,26,51,0.9)' }}
+            >
+              {pct}%
+            </span>
           </ProgressRing>
-          <span className={`mt-1 text-[10px] font-semibold ${level.gold ? 'text-gold' : 'text-white/60'}`}>
+          <span
+            className={`mt-1 text-[10px] font-semibold ${level.gold ? 'text-gold' : 'text-white/80'}`}
+            style={{ textShadow: '0 1px 6px rgba(7,26,51,0.9)' }}
+          >
             {level.label}
           </span>
         </div>
       </div>
 
-      <div className="relative mt-4">
+      <div className="relative z-10 mt-4">
         <div className="mb-1 flex justify-between text-xs text-white/80 tabular">
           <span>Álbum {pct}%</span>
           <span>

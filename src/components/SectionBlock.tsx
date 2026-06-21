@@ -53,11 +53,23 @@ export function SectionBlock({ section, sectionData, onToggle, onComplete }: Pro
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left ${
+        className={`relative flex w-full items-center justify-between gap-3 overflow-hidden px-3.5 py-3 text-left ${
           open ? 'bg-white/5' : ''
         }`}
       >
-        <div className="flex min-w-0 items-center gap-3">
+        {/* lavado de color de la bandera del país, difuminada de fondo */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden"
+        >
+          <span className="scale-[3.4] text-[96px] leading-none opacity-60 blur-[8px]">{section.flag}</span>
+        </span>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-navy-raised/95 via-navy-raised/35 to-navy-raised/60"
+        />
+
+        <div className="relative z-10 flex min-w-0 items-center gap-3">
           <ProgressRing value={section.total ? have / section.total : 0} size={44} stroke={4} complete={isComplete}>
             <span
               className={`flex h-7 w-7 items-center justify-center rounded-full bg-navy text-xl ring-1 ${
@@ -81,7 +93,7 @@ export function SectionBlock({ section, sectionData, onToggle, onComplete }: Pro
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="relative z-10 flex shrink-0 items-center gap-2">
           {isComplete ? (
             <span className="animate-sealIn rounded-pill bg-gold-card px-2.5 py-0.5 text-xs font-bold text-navy">
               ★ COMPLETA
