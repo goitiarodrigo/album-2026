@@ -9,11 +9,10 @@ type Props = {
   section: Section;
   sectionData: Record<number, Exclude<StickerState, null>> | undefined;
   onToggle: (num: number, target: Exclude<StickerState, null>) => void;
-  onReset: () => void;
   onComplete: (section: Section) => void;
 };
 
-export function SectionBlock({ section, sectionData, onToggle, onReset, onComplete }: Props) {
+export function SectionBlock({ section, sectionData, onToggle, onComplete }: Props) {
   const [open, setOpen] = useState(false);
   const [confettiKey, setConfettiKey] = useState(0);
   const wasComplete = useRef(false);
@@ -120,19 +119,12 @@ export function SectionBlock({ section, sectionData, onToggle, onReset, onComple
       {open && (
         <div className="border-t border-white/8 px-3 pb-4 pt-3">
           <div className="mb-3 h-px bg-gold-line" />
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3">
             <p className="text-xs text-white/55">
-              <span className="text-white/80">tocá ✓ la tengo</span> ·{' '}
+              <span className="text-white/80">2 toques ✓ la tengo</span> ·{' '}
               <span className="text-ice">← falta</span> ·{' '}
               <span className="font-semibold text-gold">→ repe</span>
             </p>
-            <button
-              type="button"
-              onClick={onReset}
-              className="rounded-pill bg-white/8 px-2.5 py-1 text-xs text-white/55 hover:text-white"
-            >
-              Limpiar
-            </button>
           </div>
           <div className="grid grid-cols-5 gap-2">
             {section.slots.map((n, i) => (

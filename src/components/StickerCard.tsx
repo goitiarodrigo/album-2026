@@ -16,6 +16,7 @@ export function StickerCard({ label, state, onToggle }: Props) {
   const [dragDx, setDragDx] = useState(0);
   const [burst, setBurst] = useState<Burst>(null);
   const burstId = useRef(0);
+  const lastTap = useRef(0);
 
   const fire = (kind: Exclude<StickerState, null>) => {
     setDragDx(0);
@@ -35,7 +36,16 @@ export function StickerCard({ label, state, onToggle }: Props) {
     },
     onSwipedLeft: () => fire('missing'),
     onSwipedRight: () => fire('duplicate'),
-    onTap: () => fire('owned'),
+    // doble toque (2 taps < 320ms) = "la tengo"; un solo tap no hace nada (evita marcas accidentales)
+    onTap: () => {
+      const now = Date.now();
+      if (now - lastTap.current < 320) {
+        lastTap.current = 0;
+        fire('owned');
+      } else {
+        lastTap.current = now;
+      }
+    },
     onSwiped: () => setDragDx(0),
     delta: SWIPE_THRESHOLD,
     trackMouse: true,
@@ -51,7 +61,7 @@ export function StickerCard({ label, state, onToggle }: Props) {
         : undefined;
 
   const base =
-    'relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-tile text-lg font-extrabold touch-pan-y select-none';
+    'relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-tile text-lg font-extrabold touch-manipulation select-none';
 
   const stateCls =
     state === 'duplicate'

@@ -20,7 +20,7 @@ const TOTAL_SLOTS = SECTIONS.reduce((acc, s) => acc + s.total, 0);
 const MILESTONES = [25, 50, 75, 100];
 
 function App() {
-  const { stickers, toggleState, resetSection, resetAll } = useStickers();
+  const { stickers, toggleState, resetAll } = useStickers();
   const { profile, update, hasProfile } = useProfile();
   const { toasts, push } = useToasts();
   const [shareOpen, setShareOpen] = useState(false);
@@ -206,7 +206,6 @@ function App() {
               section={section}
               sectionData={stickers[section.code]}
               onToggle={(num, target) => toggleState(section.code, num, target)}
-              onReset={() => resetSection(section.code)}
               onComplete={onComplete}
             />
           ))}
@@ -224,7 +223,6 @@ function App() {
               section={section}
               sectionData={stickers[section.code]}
               onToggle={(num, target) => toggleState(section.code, num, target)}
-              onReset={() => resetSection(section.code)}
               onComplete={onComplete}
             />
           ))}
@@ -242,7 +240,6 @@ function App() {
               section={section}
               sectionData={stickers[section.code]}
               onToggle={(num, target) => toggleState(section.code, num, target)}
-              onReset={() => resetSection(section.code)}
               onComplete={onComplete}
             />
           ))}

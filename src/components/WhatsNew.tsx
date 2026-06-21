@@ -16,9 +16,9 @@ export function WhatsNew({ onClose }: Props) {
           <li className="flex gap-2.5">
             <span className="text-lg leading-none">👆</span>
             <span>
-              <b className="text-white">Tocá</b> una figu para marcar que <b className="text-white">ya la tenés</b> ✓
-              (pegada). El swipe sigue igual: <span className="text-ice">← falta</span> ·{' '}
-              <span className="text-gold">→ repe</span>.
+              <b className="text-white">Tocá dos veces</b> una figu para marcar que{' '}
+              <b className="text-white">ya la tenés</b> ✓ (pegada). El swipe sigue igual:{' '}
+              <span className="text-ice">← falta</span> · <span className="text-gold">→ repe</span>.
             </span>
           </li>
           <li className="flex gap-2.5">

@@ -18,7 +18,7 @@ const STEPS = [
   },
   {
     title: 'Marcá tus figus 👆',
-    body: 'TOCÁ una figu si YA LA TENÉS (queda ✓). Deslizá ← si te FALTA (celeste) o → si la tenés REPETIDA (dorada). Tocá o deslizá de nuevo para desmarcar.',
+    body: 'TOCÁ DOS VECES una figu si YA LA TENÉS (queda ✓). Deslizá ← si te FALTA (celeste) o → si la tenés REPETIDA (dorada). Repetí el gesto para desmarcar.',
   },
   {
     title: 'Subí de nivel 🏆',
@@ -62,7 +62,7 @@ function Visual({ step, profile, update, push }: { step: number } & Omit<Props, 
           </div>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <span className="text-xl text-white/70">👆</span>
+          <span className="text-xl text-white/70">👆👆</span>
           <div className="flex aspect-[4/5] w-14 flex-col items-center justify-center rounded-tile bg-white/[0.16] text-white ring-1 ring-white/45">
             <span className="text-base font-extrabold">10</span>
             <span className="text-[9px] text-white/75">✓ TENGO</span>
