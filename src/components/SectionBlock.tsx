@@ -136,6 +136,7 @@ export function SectionBlock({ section, sectionData, onToggle, onComplete }: Pro
                 <StickerCard
                   label={slotLabel(section, n)}
                   state={sectionData?.[n] ?? null}
+                  image={section.hasImages ? `/figus/${section.code}/${n}.webp` : undefined}
                   onToggle={(target) => onToggle(n, target)}
                 />
               </div>

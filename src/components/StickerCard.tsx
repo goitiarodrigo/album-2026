@@ -5,6 +5,7 @@ import type { StickerState } from '../hooks/useStickers';
 type Props = {
   label: string;
   state: StickerState;
+  image?: string;
   onToggle: (target: Exclude<StickerState, null>) => void;
 };
 
@@ -12,7 +13,7 @@ const SWIPE_THRESHOLD = 35;
 
 type Burst = { key: number; kind: Exclude<StickerState, null> } | null;
 
-export function StickerCard({ label, state, onToggle }: Props) {
+export function StickerCard({ label, state, image, onToggle }: Props) {
   const [dragDx, setDragDx] = useState(0);
   const [burst, setBurst] = useState<Burst>(null);
   const burstId = useRef(0);
@@ -63,8 +64,26 @@ export function StickerCard({ label, state, onToggle }: Props) {
   const base =
     'relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-tile text-lg font-extrabold touch-manipulation select-none';
 
-  const stateCls =
-    state === 'duplicate'
+  const hasImg = !!image;
+
+  // Con imagen: el fondo es la figu; el estado se distingue por filtro + marco + badge.
+  // falta = gris/apagada · tengo = a color + ✓ · repe = a color + marco dorado + ★ · vacío = atenuada.
+  const imgFilter =
+    state === 'owned' || state === 'duplicate'
+      ? 'none'
+      : state === 'missing'
+        ? 'grayscale(1) brightness(0.5)'
+        : 'grayscale(0.45) brightness(0.72)';
+
+  const frameCls = hasImg
+    ? state === 'duplicate'
+      ? 'bg-navy ring-2 ring-gold shadow-glow-gold'
+      : state === 'owned'
+        ? 'bg-navy ring-2 ring-white/80'
+        : state === 'missing'
+          ? 'bg-navy ring-2 ring-ice/70'
+          : 'bg-navy ring-1 ring-white/10'
+    : state === 'duplicate'
       ? 'bg-gold-card text-navy shadow-glow-gold'
       : state === 'owned'
         ? 'bg-white/[0.16] text-white ring-1 ring-white/45'
@@ -72,51 +91,80 @@ export function StickerCard({ label, state, onToggle }: Props) {
           ? 'bg-ice/10 text-white ring-2 ring-ice/55'
           : 'bg-navy text-white/40 ring-1 ring-white/10';
 
+  const marker =
+    state === 'duplicate' ? '★' : state === 'owned' ? '✓' : state === 'missing' ? '○' : '';
+  const markerCls =
+    state === 'duplicate'
+      ? 'bg-gold text-navy'
+      : state === 'owned'
+        ? 'bg-white text-navy'
+        : 'bg-ice text-navy';
+
   return (
     <div className="relative">
       <div
         {...handlers}
         role="button"
         aria-label={`Figurita ${label}`}
-        className={`${base} ${stateCls} ${burst ? 'animate-pop' : ''}`}
+        className={`${base} ${frameCls} ${burst ? 'animate-pop' : ''}`}
         style={{
           transform: `translateX(${dragDx}px) rotate(${dragDx * 0.18}deg)`,
           transition: dragDx === 0 ? 'transform 180ms ease-out' : 'none',
           boxShadow: dragShadow,
         }}
       >
+        {hasImg && (
+          <img
+            src={image}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            style={{ filter: imgFilter }}
+          />
+        )}
+
         {/* brillo glossy diagonal en estado repe */}
         {state === 'duplicate' && (
           <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gloss" />
         )}
-        {/* estrella en repe */}
-        {state === 'duplicate' && (
-          <span className="pointer-events-none absolute right-1 top-0.5 text-[10px] text-white/80">★</span>
+
+        {/* etiqueta del número: badge en esquina si hay imagen, grande al centro si no */}
+        {hasImg ? (
+          <span className="pointer-events-none absolute left-0.5 top-0.5 z-10 rounded bg-navy/75 px-1 text-[9px] font-bold leading-tight text-white/90">
+            {label}
+          </span>
+        ) : (
+          <span className="pointer-events-none relative z-10 leading-none">{label}</span>
         )}
-        {/* check en "la tengo" */}
-        {state === 'owned' && (
-          <span className="pointer-events-none absolute right-1 top-0.5 text-[10px] text-white/70">✓</span>
+
+        {/* badge de estado en esquina */}
+        {marker && (
+          <span
+            className={`pointer-events-none absolute bottom-0.5 right-0.5 z-10 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold leading-none ${markerCls}`}
+          >
+            {marker}
+          </span>
         )}
 
         {/* ghost de preview durante el swipe */}
         {dragDx > 10 && (
           <span
-            className="pointer-events-none absolute inset-0 flex items-center justify-center text-3xl text-gold"
-            style={{ opacity: glow * 0.8 }}
+            className="pointer-events-none absolute inset-0 flex items-center justify-center text-3xl text-gold drop-shadow"
+            style={{ opacity: glow * 0.85 }}
           >
             ★
           </span>
         )}
         {dragDx < -10 && (
           <span
-            className="pointer-events-none absolute inset-0 flex items-center justify-center text-3xl text-ice"
-            style={{ opacity: glow * 0.8 }}
+            className="pointer-events-none absolute inset-0 flex items-center justify-center text-3xl text-ice drop-shadow"
+            style={{ opacity: glow * 0.85 }}
           >
             ○
           </span>
         )}
-
-        <span className="pointer-events-none relative z-10 leading-none">{label}</span>
 
         {/* flash de revelado al confirmar */}
         {burst && (

@@ -1,3 +1,5 @@
+import { TEAM_COUNTS } from './teamCounts';
+
 export type SectionGroup = 'fwc' | 'team' | 'cc';
 
 export type Section = {
@@ -7,6 +9,7 @@ export type Section = {
   group: SectionGroup;
   slots: number[];
   total: number;
+  hasImages: boolean;
 };
 
 function range(a: number, b: number): number[] {
@@ -18,7 +21,7 @@ function range(a: number, b: number): number[] {
 const TEAM = range(1, 20);
 
 // FWC: 20 figus 00–19 repartidas en 3 categorías (no 20 c/u). CC: sponsor Coca-Cola CC1–CC14.
-const RAW: Omit<Section, 'total'>[] = [
+const RAW: Omit<Section, 'total' | 'hasImages'>[] = [
   { code: 'FWC-T', name: 'FWC Trofeo', flag: '🏆', group: 'fwc', slots: [0, 1, 2, 3, 4] },
   { code: 'FWC-W', name: 'FWC Mundo', flag: '🌎', group: 'fwc', slots: [5, 6, 7, 8] },
   { code: 'FWC-L', name: 'FWC Leyendas', flag: '📜', group: 'fwc', slots: range(9, 19) },
@@ -74,7 +77,13 @@ const RAW: Omit<Section, 'total'>[] = [
   { code: 'PAN', name: 'Panamá', flag: '🇵🇦', group: 'team', slots: TEAM },
 ];
 
-export const SECTIONS: Section[] = RAW.map((s) => ({ ...s, total: s.slots.length }));
+// Los equipos toman su cantidad REAL de figus del álbum (escudo+foto+jugadores) y llevan imagen.
+// FWC y Coca-Cola quedan con su numeración propia y SIN imagen (por ahora).
+export const SECTIONS: Section[] = RAW.map((s) => {
+  const hasImages = s.group === 'team';
+  const slots = hasImages ? range(1, TEAM_COUNTS[s.code] ?? s.slots.length) : s.slots;
+  return { ...s, slots, total: slots.length, hasImages };
+});
 
 export const SECTIONS_BY_CODE: Record<string, Section> = Object.fromEntries(
   SECTIONS.map((s) => [s.code, s]),

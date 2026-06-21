@@ -7,7 +7,7 @@ import type { StickersMap } from '../hooks/useStickers';
 // El total de slots y el layout del bitset se DERIVAN del catálogo (no asume N fijo por sección).
 const TOTAL_SLOTS = SECTIONS.reduce((acc, s) => acc + s.slots.length, 0);
 const BITSET_BYTES = Math.ceil((TOTAL_SLOTS * 2) / 8);
-const PAYLOAD_VERSION = 2; // v2: slots variables por sección (FWC 00–19 + Coca-Cola CC1–14)
+const PAYLOAD_VERSION = 3; // v3: equipos con cantidad real de figus del álbum (20–22 c/u)
 const MAX_NAME_BYTES = 40;
 const MAX_INPUT_CHARS = 1000;
 
