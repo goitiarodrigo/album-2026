@@ -57,17 +57,13 @@ export function SectionBlock({ section, sectionData, onToggle, onComplete }: Pro
           open ? 'bg-white/5' : ''
         }`}
       >
-        {/* lavado de color de la bandera del país, difuminada de fondo */}
+        {/* bandera del país asomando en diagonal desde la esquina inferior derecha */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden"
+          className="pointer-events-none absolute bottom-0 right-0 z-0 origin-bottom-right translate-x-[14%] translate-y-[26%] rotate-[-28deg] select-none text-[84px] leading-none opacity-70"
         >
-          <span className="scale-[2.5] text-[92px] leading-none opacity-80 blur-[1.5px]">{section.flag}</span>
+          {section.flag}
         </span>
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-navy-raised/92 via-navy-raised/30 to-navy-raised/45"
-        />
 
         <div className="relative z-10 flex min-w-0 items-center gap-3">
           <ProgressRing value={section.total ? have / section.total : 0} size={44} stroke={4} complete={isComplete}>
