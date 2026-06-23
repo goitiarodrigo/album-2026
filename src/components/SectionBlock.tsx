@@ -62,11 +62,11 @@ export function SectionBlock({ section, sectionData, onToggle, onComplete }: Pro
           aria-hidden
           className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden"
         >
-          <span className="scale-[3.4] text-[96px] leading-none opacity-60 blur-[8px]">{section.flag}</span>
+          <span className="scale-[2.5] text-[92px] leading-none opacity-80 blur-[1.5px]">{section.flag}</span>
         </span>
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-navy-raised/95 via-navy-raised/35 to-navy-raised/60"
+          className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-navy-raised/92 via-navy-raised/30 to-navy-raised/45"
         />
 
         <div className="relative z-10 flex min-w-0 items-center gap-3">
